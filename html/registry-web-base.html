@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>私有镜像仓库</title>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>爱车保私有镜像仓库</h1>
+        <!--<p class="lead">仓库列表</p>-->
+      </div>
+        <br>
+    <div class="page-header">
+        <h1>列表</h1>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>编号</th>
+                <th>镜像名</th>
+                <th>版本数</th>
+                <th>最后一次版本号</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(len(tag_images)) %}
+                <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
+                    <td>{{i}}</td>
+                    <td><a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}</a></td>
+                    <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
+                    <td>{{tag_images.get(list(tag_images.keys())[i])[-1]}}</td>
+                    <!--<td><a href="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>-->
+                </tr>
+                </a>
+              {% end %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /.container -->
+
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>
