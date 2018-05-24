@@ -32,7 +32,20 @@
                     alert("密码错误");
             }
         );
+        if(isFireFox())
+            sleep(500);
     }
+    function isFireFox(){
+        var explorer =navigator.userAgent ;
+        if(explorer.indexOf("Firefox") >= 0)
+            return true;
+        else
+            return false;
+    }
+    function sleep(n) { //n表示的毫秒数
+            var start = new Date().getTime();
+            while (true) if (new Date().getTime() - start > n) break;
+        }
 
     function check(){
         var storage = window.localStorage;
