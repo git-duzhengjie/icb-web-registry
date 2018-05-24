@@ -5,10 +5,34 @@
     <link rel="icon" href="{{ static_url('favicon.ico')}}">
     <title>{{ image_name }}</title>
     <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{static_url('css/bootstrap.min.css')}}"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="{{static_url('js/jquery-3.3.1.min.js')}}"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="{{static_url('js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('js/page-check.js')}}"></script>
+    <link href="{{static_url('css/sign-in.css')}}" rel="stylesheet">
 </head>
 <body>
     <div class="container">
+        <div class="header clearfix">
+        <nav>
+            <span class="nav nav-pills pull-right">
+            <button type="button" class="btn btn-primary" data-toggle="modal"
+                    data-target="#myModal" id="btn-login">管理员登录</button>
+            <li class="dropdown" id="user-span">
+              <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="user">
+                {{user}} <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="/logout">退出</a></li>
+              </ul>
+            </li>
+            </span>
+        </nav>
+        <!--<h1 class="text-muted"></h1>-->
+      </div>
       <div class="starter-template">
         <h1>{{ image_name }}</h1>
           <p class="lead">版本列表</p>
@@ -21,6 +45,7 @@
               <tr>
                 <th>编号</th>
                 <th>版本号</th>
+                <th>创建时间</th>
               </tr>
             </thead>
             <tbody>
@@ -28,6 +53,8 @@
                 <tr>
                     <td>{{i}}</td>
                     <td>{{tags[i]}}</td>
+                    <td>{{create_time[tags[i]]}}</td>
+                    <td class="del"><a href="/delete/{{image_name}}?tag={{tags[i]}}">删除</a></td>
                 </tr>
               {% end %}
             </tbody>
@@ -35,10 +62,29 @@
         </div>
       </div>
     </div><!-- /.container -->
+    <div class="modal fade" id="myModal" tabindex="-200" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">管理员登录</h4>
+            </div>
 
-    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
-    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
-    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
-    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      <form class="form-signin">
+        <label for="inputUserName" class="sr-only">账号</label>
+        <input type="text" id="inputUserName" class="form-control" placeholder="管理员账号" required autofocus>
+        <label for="inputPassword" class="sr-only">密码</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="密码" required>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" id="remember-me"> 记住
+          </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+      </form>
+    </div><!-- /.modal -->
+</div>
+</div>
+
 </body>
 </html>
