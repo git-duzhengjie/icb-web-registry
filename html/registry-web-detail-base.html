@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="{{ static_url('favicon.ico')}}">
-    <title>{{ image_name }}</title>
+    <title>{{image_name}}</title>
     <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
     <link rel="stylesheet" href="{{static_url('css/bootstrap.min.css')}}"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -49,12 +49,12 @@
               </tr>
             </thead>
             <tbody>
-              {% for i in range(len(tags)) %}
+              {% for i in range(len(tags_time)) %}
                 <tr>
                     <td>{{i}}</td>
-                    <td>{{tags[i]}}</td>
-                    <td>{{create_time[tags[i]]}}</td>
-                    <td class="del"><a href="/delete/{{image_name}}?tag={{tags[i]}}">删除</a></td>
+                    <td>{{tags_time[i].get("tag")}}</td>
+                    <td>{{tags_time[i].get("time")}}</td>
+                    <td class="del"><a href="/delete/{{image_name}}?tag={{tags_time[i].get('tag')}}">删除</a></td>
                 </tr>
               {% end %}
             </tbody>

@@ -20,7 +20,7 @@ from dateutil.tz import tz
 from tornado.options import define, options
 
 define("port", default=8080, help="run on the given port", type=int)
-define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
+define("image_url", default="https://220.167.101.61:5000", help="image registry address", type=str)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -34,17 +34,15 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     def get(self):
         tag_images = get_images()
-        create_time = get_image_last_time(tag_images)
-        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user, create_time=create_time)
+        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user)
 
 
 class TagsPageHandler(BaseHandler):
     def get(self, *args, **kwargs):
         arg = args[0]
-        tag_images = get_images()
-        create_time = get_image_time(arg, tag_images.get(arg, []))
-        self.render('registry-web-detail-base.html', tags=tag_images.get(arg, []), image_name=arg,
-                    user=self.current_user, create_time=create_time)
+        tags_time = get_images_tag(arg)
+        self.render('registry-web-detail-base.html', tags_time=tags_time, image_name=arg,
+                    user=self.current_user)
 
 
 class DeleteHandler(BaseHandler):
@@ -86,6 +84,9 @@ class SignInHandler(BaseHandler):
             self.set_secure_cookie("username", username)
         self.write(str(status))
 
+    def delete(self, *args, **kwargs):
+        pass
+
 
 class LogoutHandler(BaseHandler):
     def get(self, *args, **kwargs):
@@ -112,9 +113,27 @@ def get_images():
             url = options.image_url + "/v2/" + image + "/tags/list"
             result = requests.get(url, verify=False).content.strip()
             tags = json.loads(result).get('tags', [])
-            tags = sort(tags)
-            images_tags.setdefault(image, tags)
+            tags_time = []
+            for tag in tags:
+                tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
+            tags_time = sorted(tags_time, key=lambda k: k["time"])
+            images_tags.setdefault(image, tags_time)
         return images_tags
+    except:
+        traceback.print_exc()
+        return None
+
+
+def get_images_tag(image):
+    try:
+        url = options.image_url + "/v2/" + image + "/tags/list"
+        result = requests.get(url, verify=False).content.strip()
+        tags = json.loads(result).get('tags', [])
+        tags_time = []
+        for tag in tags:
+            tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
+        tags_time = sorted(tags_time, key=lambda k: k["time"])
+        return tags_time
     except:
         traceback.print_exc()
         return None
@@ -146,6 +165,18 @@ def get_image_last_time(image_tags):
                 json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
                 .get("created")))
         return create_time
+    except:
+        return None
+
+
+def image_tag_time(image, tag):
+    try:
+        url_base = options.image_url + "/v2/" + image + "/manifests/"
+        url = url_base + tag
+        result = requests.get(url, verify=False).content.strip()
+        return get_local_time(
+                json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
+                .get("created"))
     except:
         return None
 

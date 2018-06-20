@@ -36,13 +36,13 @@
             sleep(500);
     }
     function isFireFox(){
-        var explorer =navigator.userAgent ;
+        var explorer = navigator.userAgent ;
         if(explorer.indexOf("Firefox") >= 0)
             return true;
         else
             return false;
     }
-    function sleep(n) { //n表示的毫秒数
+    function sleep(n) {
             var start = new Date().getTime();
             while (true) if (new Date().getTime() - start > n) break;
         }
