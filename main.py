@@ -116,7 +116,7 @@ def get_images():
             tags_time = []
             for tag in tags:
                 tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
-            tags_time = sorted(tags_time, key=lambda k: k["time"])
+            tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
             images_tags.setdefault(image, tags_time)
         return images_tags
     except:
@@ -132,7 +132,7 @@ def get_images_tag(image):
         tags_time = []
         for tag in tags:
             tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
-        tags_time = sorted(tags_time, key=lambda k: k["time"])
+        tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
         return tags_time
     except:
         traceback.print_exc()
