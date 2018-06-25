@@ -4,3 +4,4 @@
 # 使用
 - --port=指定启动端口
 - --image_url=指定镜像仓库地址
+- --version_path=指定记录k8s中的服务以及当前的版本的json文件地址
