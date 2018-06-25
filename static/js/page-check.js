@@ -4,6 +4,25 @@
           $("form").submit(function(){
           sign_in();
           });
+          $(".del").click(function(){
+            var href = $(this).children("a").attr("rel");
+            if(href.search("tag=") != -1){
+                if(confirm("确定删除版本" + href.split('?')[1].split("=")[1] + "?")){
+                    window.location.href=href;
+                }
+            }
+            else{
+                if(confirm("确定删除镜像" + href.split('/').slice(2,).join('/') + "?")){
+                    window.location.href=href;
+                }
+            }
+          })
+          $(".online").click(function(){
+            var href = $(this).children("a").attr("rel");
+            if(confirm("发布版本" + href.split('?')[1].split("=")[1] + "到k8s?")){
+                window.location.href=href;
+            }
+          })
         });
 
     function sign_in(){
@@ -58,12 +77,15 @@
         {
             $("#btn-login").hide();
             $(".del").show();
+            $(".online").show();
             $("#user-span").show();
         }else{
             $("#btn-login").show();
             $(".del").hide();
+            $(".online").hide();
             $("#user-span").hide();
         }
+
     }
 
 

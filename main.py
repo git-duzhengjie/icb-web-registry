@@ -20,7 +20,8 @@ from dateutil.tz import tz
 from tornado.options import define, options
 
 define("port", default=8080, help="run on the given port", type=int)
-define("image_url", default="https://220.167.101.61:5000", help="image registry address", type=str)
+define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
+define("version_path", default="./version.json", help="version path", type=str)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -34,14 +35,14 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     def get(self):
         tag_images = get_images()
-        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user)
+        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user, online=get_online())
 
 
 class TagsPageHandler(BaseHandler):
     def get(self, *args, **kwargs):
         arg = args[0]
         tags_time = get_images_tag(arg)
-        self.render('registry-web-detail-base.html', tags_time=tags_time, image_name=arg,
+        self.render('registry-web-detail-base.html', tags_time=tags_time, image_name=arg, online=get_online(),
                     user=self.current_user)
 
 
@@ -56,6 +57,43 @@ class DeleteHandler(BaseHandler):
             self.redirect("/")
         else:
             command = "delete_docker_registry_image --image {0}:{1}".format(arg, tag)
+            print(command)
+            subprocess.call(command, shell=True)
+            self.redirect("/tags/{0}".format(arg))
+
+
+def get_current_version():
+    with open(options.version_path) as f:
+        return json.load(f)
+
+
+def save_current_version(current_version):
+    with open(options.version_path, 'w') as f:
+        json.dump(current_version, f)
+
+
+class PublishHandler(BaseHandler):
+    def get(self, *args, **kwargs):
+        arg = args[0]
+        tag = self.get_argument("tag", None)
+        args = arg.split('/')
+        if len(args) > 1:
+            srv = args[1]
+        else:
+            srv = args[0]
+        current_version = get_current_version()
+        if tag != current_version.get(srv):
+            command = "kubectl set image deployment {0} {0}={1}/{2}:{3} -n icb " \
+                .format(srv, options.image_url, arg, tag)
+            print(command)
+            return_code = subprocess.call(command, shell=True)
+            if return_code == 0:
+                current_version[srv] = tag
+                save_current_version(current_version)
+            self.redirect("/tags/{0}".format(arg))
+        else:
+            command = "kubectl delete rs -l app={0} -n icb " \
+                .format(srv, options.image_url, arg, tag)
             print(command)
             subprocess.call(command, shell=True)
             self.redirect("/tags/{0}".format(arg))
@@ -196,11 +234,16 @@ def get_local_time(time):
     return datetime.strftime(local, "%Y-%m-%d %H:%M:%S")
 
 
+def get_online():
+    with open(options.version_path) as f:
+        return json.load(f)
+
+
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[(r'/', IndexHandler), (r'/tags/(.*)', TagsPageHandler), (r'/delete/(.*)', DeleteHandler),
-                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler),
+                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler),(r'/publish/(.*)', PublishHandler)
                   ],
         template_path=os.path.join(os.path.dirname(__file__), "html"),
         static_path=os.path.join(os.path.dirname(__file__), "static"),

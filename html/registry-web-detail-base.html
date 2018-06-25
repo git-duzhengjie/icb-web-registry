@@ -52,9 +52,20 @@
               {% for i in range(len(tags_time)) %}
                 <tr>
                     <td>{{i}}</td>
-                    <td>{{tags_time[i].get("tag")}}</td>
+                    <td>{{tags_time[i].get("tag")}}
+                    {% if ((len(image_name.split('/')) == 2 and
+                            image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]))
+                        or  (image_name in online and tags_time[i].get('tag') == online.get(image_name))) %}
+                            <sup id="online"><font color="green">k8s</font></sup></a>
+                    {% end %}
+                    </td>
                     <td>{{tags_time[i].get("time")}}</td>
-                    <td class="del"><a href="/delete/{{image_name}}?tag={{tags_time[i].get('tag')}}">删除</a></td>
+                    {% if ((len(image_name.split('/')) == 2 and
+                            image_name.split('/')[1] in online)
+                        or  image_name in online) %}
+                        <td class="online"><a href = "JavaScript:void(0)" rel="/publish/{{image_name}}?tag={{tags_time[i].get('tag')}}">发布到k8s</a></td>>
+                    {% end %}
+                    <td class="del"><a href = "JavaScript:void(0)" rel="/delete/{{image_name}}?tag={{tags_time[i].get('tag')}}">删除</a></td>
                 </tr>
               {% end %}
             </tbody>

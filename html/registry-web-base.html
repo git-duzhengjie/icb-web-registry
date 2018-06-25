@@ -63,11 +63,17 @@
               {% for i in range(len(tag_images)) %}
                 <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
                     <td>{{i}}</td>
-                    <td><a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}</a></td>
+                    <td>
+                        <a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}
+                            {% if (len(list(tag_images.keys())[i].split('/')) == 2 and
+                            list(tag_images.keys())[i].split('/')[1] in online) or  list(tag_images.keys())[i] in online %}
+                            <sup id="online"><font color="green">k8s</font></sup></a>
+                            {% end %}
+                        </td>
                     <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
                     <td>{{tag_images.get(list(tag_images.keys())[i])[0].get("tag")}}</td>
                     <td class="col-6">{{tag_images.get(list(tag_images.keys())[i])[0].get("time")}}</td>
-                    <td class="del"><a href="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
+                    <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
                 </tr>
                 </a>
               {% end %}
