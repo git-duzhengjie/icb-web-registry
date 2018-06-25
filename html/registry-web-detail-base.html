@@ -63,7 +63,7 @@
                     {% if ((len(image_name.split('/')) == 2 and
                             image_name.split('/')[1] in online)
                         or  image_name in online) %}
-                        <td class="online"><a href = "JavaScript:void(0)" rel="/publish/{{image_name}}?tag={{tags_time[i].get('tag')}}">发布到k8s</a></td>>
+                        <td class="online"><a href = "JavaScript:void(0)" rel="/publish/{{image_name}}?tag={{tags_time[i].get('tag')}}">发布到k8s</a></td>
                     {% end %}
                     <td class="del"><a href = "JavaScript:void(0)" rel="/delete/{{image_name}}?tag={{tags_time[i].get('tag')}}">删除</a></td>
                 </tr>
