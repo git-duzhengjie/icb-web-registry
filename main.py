@@ -84,7 +84,7 @@ class PublishHandler(BaseHandler):
         current_version = get_current_version()
         if tag != current_version.get(srv):
             command = "kubectl set image deployment {0} {0}={1}/{2}:{3} -n icb " \
-                .format(srv, options.image_url, arg, tag)
+                .format(srv, options.image_url.replace("https://", ""), arg, tag)
             print(command)
             return_code = subprocess.call(command, shell=True)
             if return_code == 0:
@@ -93,7 +93,7 @@ class PublishHandler(BaseHandler):
             self.redirect("/tags/{0}".format(arg))
         else:
             command = "kubectl delete rs -l app={0} -n icb " \
-                .format(srv, options.image_url, arg, tag)
+                .format(srv)
             print(command)
             subprocess.call(command, shell=True)
             self.redirect("/tags/{0}".format(arg))
