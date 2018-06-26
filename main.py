@@ -20,7 +20,7 @@ from dateutil.tz import tz
 from tornado.options import define, options
 
 define("port", default=8080, help="run on the given port", type=int)
-define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
+define("image_url", default="https://220.167.101.61:5000", help="image registry address", type=str)
 define("version_path", default="./version.json", help="version path", type=str)
 
 
@@ -82,20 +82,24 @@ class PublishHandler(BaseHandler):
         else:
             srv = args[0]
         current_version = get_current_version()
-        if tag != current_version.get(srv):
+        if tag != current_version.get(srv).get("tag"):
             command = "kubectl set image deployment {0} {0}={1}/{2}:{3} -n icb " \
                 .format(srv, options.image_url.replace("https://", ""), arg, tag)
             print(command)
             return_code = subprocess.call(command, shell=True)
             if return_code == 0:
-                current_version[srv] = tag
+                current_version[srv]["tag"] = tag
+                current_version[srv]["update_time"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 save_current_version(current_version)
             self.redirect("/tags/{0}".format(arg))
         else:
             command = "kubectl delete rs -l app={0} -n icb " \
                 .format(srv)
             print(command)
-            subprocess.call(command, shell=True)
+            return_code = subprocess.call(command, shell=True)
+            if return_code == 0:
+                current_version[srv]["update_time"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                save_current_version(current_version)
             self.redirect("/tags/{0}".format(arg))
 
 

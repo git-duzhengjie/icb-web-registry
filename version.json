@@ -1,3 +1,10 @@
-{"micro-main": "latest", "micro-story": "latest", "micro-market": "latest", "micro-sword": "latest",
-"micro-user": "latest", "gateway-app": "latest", "gateway-appmanagement": "latest","gateway-dealer": "latest"
+{
+  "micro-main": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "micro-story": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "micro-market": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "micro-sword": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "micro-user": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "gateway-app": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "gateway-appmanagement": {"tag":"latest", "update_time": "2018-06-25 15:47:23"},
+  "gateway-dealer": {"tag":"latest", "update_time": "2018-06-25 15:47:23"}
 }

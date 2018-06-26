@@ -46,6 +46,7 @@
                 <th>编号</th>
                 <th>版本号</th>
                 <th>创建时间</th>
+                <th>发布时间</th>
               </tr>
             </thead>
             <tbody>
@@ -54,16 +55,21 @@
                     <td>{{i}}</td>
                     <td>{{tags_time[i].get("tag")}}
                     {% if ((len(image_name.split('/')) == 2 and
-                            image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]))
-                        or  (image_name in online and tags_time[i].get('tag') == online.get(image_name))) %}
+                            image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]).get("tag"))
+                        or  (image_name in online and tags_time[i].get('tag') == online.get(image_name).get("tag"))) %}
                             <sup id="online"><font color="green">k8s</font></sup></a>
                     {% end %}
                     </td>
                     <td>{{tags_time[i].get("time")}}</td>
                     {% if ((len(image_name.split('/')) == 2 and
-                            image_name.split('/')[1] in online)
-                        or  image_name in online) %}
-                        <td class="online"><a href = "JavaScript:void(0)" rel="/publish/{{image_name}}?tag={{tags_time[i].get('tag')}}">发布到k8s</a></td>
+                            image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]).get("tag"))
+                        or  (image_name in online and tags_time[i].get('tag') == online.get(image_name).get("tag"))) %}
+                            <td>{{online.get(image_name.split('/')[1]).get('update_time')}}</td>
+                    {% else %}
+                            <td></td>
+                    {% end %}
+                    {% if (len(image_name.split('/')) == 2 and image_name.split('/')[1] in online) or image_name in online %}
+                            <td class="online"><a href = "JavaScript:void(0)" rel="/publish/{{image_name}}?tag={{tags_time[i].get('tag')}}">发布到k8s</a></td>
                     {% end %}
                     <td class="del"><a href = "JavaScript:void(0)" rel="/delete/{{image_name}}?tag={{tags_time[i].get('tag')}}">删除</a></td>
                 </tr>
