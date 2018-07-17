@@ -20,7 +20,7 @@ from dateutil.tz import tz
 from tornado.options import define, options
 
 define("port", default=8080, help="run on the given port", type=int)
-define("image_url", default="https://220.167.101.61:5000", help="image registry address", type=str)
+define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
 define("version_path", default="./version.json", help="version path", type=str)
 
 
@@ -51,12 +51,12 @@ class DeleteHandler(BaseHandler):
         arg = args[0]
         tag = self.get_argument("tag", None)
         if tag is None:
-            command = "delete_docker_registry_image --image {0}".format(arg)
+            command = "delete_docker_registry_image --image {0};docker restart registry-srv".format(arg)
             print(command)
             subprocess.call(command, shell=True)
             self.redirect("/")
         else:
-            command = "delete_docker_registry_image --image {0}:{1}".format(arg, tag)
+            command = "delete_docker_registry_image --image {0}:{1};docker restart registry-srv".format(arg, tag)
             print(command)
             subprocess.call(command, shell=True)
             self.redirect("/tags/{0}".format(arg))
@@ -147,6 +147,8 @@ def sort(tags):
 
 def get_images():
     try:
+        s = requests.session()
+        s.keep_alive = False
         url = options.image_url + "/v2/_catalog"
         result = requests.get(url, verify=False).content.strip()
         docker_images = json.loads(result).get("repositories")
@@ -168,6 +170,8 @@ def get_images():
 
 def get_images_tag(image):
     try:
+        s = requests.session()
+        s.keep_alive = False
         url = options.image_url + "/v2/" + image + "/tags/list"
         result = requests.get(url, verify=False).content.strip()
         tags = json.loads(result).get('tags', [])
@@ -183,6 +187,8 @@ def get_images_tag(image):
 
 def get_image_time(image, tags):
     try:
+        s = requests.session()
+        s.keep_alive = False
         url_base = options.image_url + "/v2/" + image + "/manifests/"
         create_time = {}
         for tag in tags:
@@ -198,6 +204,8 @@ def get_image_time(image, tags):
 
 def get_image_last_time(image_tags):
     try:
+        s = requests.session()
+        s.keep_alive = False
         create_time = {}
         for image in image_tags:
             url_base = options.image_url + "/v2/" + image + "/manifests/"
@@ -213,6 +221,8 @@ def get_image_last_time(image_tags):
 
 def image_tag_time(image, tag):
     try:
+        s = requests.session()
+        s.keep_alive = False
         url_base = options.image_url + "/v2/" + image + "/manifests/"
         url = url_base + tag
         result = requests.get(url, verify=False).content.strip()
@@ -247,7 +257,7 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[(r'/', IndexHandler), (r'/tags/(.*)', TagsPageHandler), (r'/delete/(.*)', DeleteHandler),
-                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler),(r'/publish/(.*)', PublishHandler)
+                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler), (r'/publish/(.*)', PublishHandler)
                   ],
         template_path=os.path.join(os.path.dirname(__file__), "html"),
         static_path=os.path.join(os.path.dirname(__file__), "static"),
