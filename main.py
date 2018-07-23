@@ -4,11 +4,13 @@
 # date: 2018/05/02
 # description:镜像仓库ui
 # ©成都爱车宝信息科技有限公司版权所有
+from __future__ import unicode_literals
 from datetime import datetime
 import json
 import os.path
 import subprocess
 import traceback
+from math import floor, ceil
 
 import requests
 import tornado.httpserver
@@ -16,6 +18,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 from dateutil.tz import tz
+from tornado import template
 
 from tornado.options import define, options
 
@@ -34,8 +37,9 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     def get(self):
-        tag_images = get_images()
-        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user, online=get_online())
+        tag_images, page_count = get_images(0, 10)
+        self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user, online=get_online(),
+                    page_count=page_count)
 
 
 class TagsPageHandler(BaseHandler):
@@ -130,6 +134,39 @@ class SignInHandler(BaseHandler):
         pass
 
 
+class TaskListPageHandler(BaseHandler):
+
+    def post(self, *args, **kwargs):
+        page = int(self.get_argument("page")) - 1
+        print(10*page)
+        tag_images, page_count = get_images(10*page, 10)
+        page_content = self.get_page_content(tag_images)
+        self.write(json.dumps({"page_count": page_count, "page_content": str(page_content, encoding="utf-8").replace("\\n", "")}, ensure_ascii=False))
+
+    def get_page_content(self, tag_images):
+        base = """{% for i in range(len(tag_images)) %}
+                    <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
+                        <td>{{i}}</td>
+                        <td>
+                            <a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}
+                                {% if (len(list(tag_images.keys())[i].split('/')) == 2 and
+                                list(tag_images.keys())[i].split('/')[1] in online) or  list(tag_images.keys())[i] in online %}
+                                <sup id="online"><font color="green">k8s</font></sup></a>
+                                {% end %}
+                            </td>
+                        <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
+                        <td>{{tag_images.get(list(tag_images.keys())[i])[0].get("tag")}}</td>
+                        <td class="col-6">{{tag_images.get(list(tag_images.keys())[i])[0].get("time")}}</td>
+                        {%if user is not None%}
+                        <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
+                        {% end %}
+                    </tr>
+                    </a>
+                  {% end %}"""
+        t = template.Template(base)
+        return t.generate(tag_images=tag_images, online=get_online(), user=self.current_user)
+
+
 class LogoutHandler(BaseHandler):
     def get(self, *args, **kwargs):
         self.clear_cookie("username")
@@ -145,7 +182,7 @@ def sort(tags):
     return sort_tags
 
 
-def get_images():
+def get_images(start, count):
     try:
         s = requests.session()
         s.keep_alive = False
@@ -153,7 +190,7 @@ def get_images():
         result = requests.get(url, verify=False).content.strip()
         docker_images = json.loads(result).get("repositories")
         images_tags = {}
-        for image in docker_images:
+        for image in docker_images[start:start+count]:
             url = options.image_url + "/v2/" + image + "/tags/list"
             result = requests.get(url, verify=False).content.strip()
             tags = json.loads(result).get('tags', [])
@@ -162,7 +199,7 @@ def get_images():
                 tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
             tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
             images_tags.setdefault(image, tags_time)
-        return images_tags
+        return images_tags, ceil(len(docker_images)/10)
     except:
         traceback.print_exc()
         return None
@@ -257,7 +294,8 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[(r'/', IndexHandler), (r'/tags/(.*)', TagsPageHandler), (r'/delete/(.*)', DeleteHandler),
-                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler), (r'/publish/(.*)', PublishHandler)
+                  (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler), (r'/publish/(.*)', PublishHandler),
+                  (r'/task_list_page', TaskListPageHandler)
                   ],
         template_path=os.path.join(os.path.dirname(__file__), "html"),
         static_path=os.path.join(os.path.dirname(__file__), "static"),

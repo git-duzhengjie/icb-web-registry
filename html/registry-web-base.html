@@ -11,9 +11,13 @@
     <script src="{{static_url('js/jquery-3.3.1.min.js')}}"></script>
     <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
     <script src="{{static_url('js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('js/bootstrap-paginator.js')}}"></script>
+    <script src="{{static_url('js/jquery.mloading.js')}}"></script>
     <script src="{{static_url('js/page-check.js')}}"></script>
+
     <!--<script src="{{static_url('js/bootstrap-sortable.js ')}}"></script>-->
     <link href="{{static_url('css/sign-in.css')}}" rel="stylesheet">
+    <link href="{{static_url('css/jquery.mloading.css')}}" rel="stylesheet">
     <!--<link href="{{static_url('css/bootstrap-sortable.css')}}" rel="stylesheet">-->
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 
@@ -49,6 +53,8 @@
       </div>
       <div class="row">
         <div class="col-md-18">
+            <div id="background" class="background" style="display: none; "></div>
+                <div id="progressBar" class="progressBar" style="display: none; "></div>
           <table class="table">
             <thead>
               <tr>
@@ -79,6 +85,7 @@
               {% end %}
             </tbody>
           </table>
+            <div id="example" style="text-align: center"> <ul id="pageLimit"></ul> <span id="pageCount" hidden>{{page_count}}</span></div>
         </div>
       </div>
     </div><!-- /.container -->
