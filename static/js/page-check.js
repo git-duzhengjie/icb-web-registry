@@ -4,25 +4,13 @@
           $("form").submit(function(){
                 sign_in();
           });
-          $(".del").click(function(){
-            var href = $(this).children("a").attr("rel");
-            if(href.search("tag=") != -1){
-                if(confirm("确定删除版本" + href.split('?')[1].split("=")[1] + "?")){
-                    window.location.href=href;
-                }
-            }
-            else{
-                if(confirm("确定删除镜像" + href.split('/').slice(2,).join('/') + "?")){
-                    window.location.href=href;
-                }
-            }
-          });
-          $(".online").click(function(){
+           $(".online").click(function(){
             var href = $(this).children("a").attr("rel");
             if(confirm("发布版本" + href.split('?')[1].split("=")[1] + "到k8s?")){
                 window.location.href=href;
             }
           });
+          addDel();
           $('#pageLimit').bootstrapPaginator({
     currentPage: 1,
     totalPages: $("#pageCount").text(),
@@ -40,7 +28,7 @@
         }//默认显示的是第一页。
     },
         onPageClicked: function (event, originalEvent, type, page){//给每个页眉绑定一个事件，其实就是ajax请求，其中page变量为当前点击的页上的数字。
-        $("tbody").mLoading({
+            $("tbody").mLoading({
                 text:"",//加载文字，默认值：加载中...
                 icon:"",//加载图标，默认值：一个小型的base64的gif图片
                 html:false,//设置加载内容是否是html格式，默认值是false
@@ -60,6 +48,7 @@
                         $('tbody').append(page_cont);
                         $('#last_page').text(page_count);
                         $("tbody").mLoading("hide");
+                        addDel();
                     }
 
             })
@@ -104,6 +93,23 @@
         else
             return false;
     }
+
+    function addDel(){
+        $(".del").click(function(){
+            var href = $(this).children("a").attr("rel");
+            if(href.search("tag=") != -1){
+                if(confirm("确定删除版本" + href.split('?')[1].split("=")[1] + "?")){
+                    window.location.href=href;
+                }
+            }
+            else{
+                if(confirm("确定删除镜像" + href.split('/').slice(2,).join('/') + "?")){
+                    window.location.href=href;
+                }
+            }
+          });
+
+    }
     function sleep(n) {
             var start = new Date().getTime();
             while (true) if (new Date().getTime() - start > n) break;
@@ -130,6 +136,13 @@
         }
 
     }
+
+    function clear(){
+        Source=document.body.firstChild.data;
+        document.open();
+        document.close();
+        document.body.innerHTML=Source;
+}
 
 
 }(jQuery));
