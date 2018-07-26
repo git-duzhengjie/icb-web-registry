@@ -64,10 +64,10 @@
                     {% end %}
                     </td>
                     <td>{{tags_time[i].get("time")}}</td>
-                    {% if ((len(image_name.split('/')) == 2 and
-                            image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]).get("tag"))
-                        or  (image_name in online and tags_time[i].get('tag') == online.get(image_name).get("tag"))) %}
+                    {% if len(image_name.split('/')) == 2 and image_name.split('/')[1] in online and tags_time[i].get('tag') == online.get(image_name.split('/')[1]).get("tag") %}
                             <td>{{online.get(image_name.split('/')[1]).get('update_time')}}</td>
+                    {% elif image_name in online and tags_time[i].get('tag') == online.get(image_name).get("tag") %}
+                            <td>{{online.get(image_name).get('update_time')}}</td>
                     {% else %}
                             <td></td>
                     {% end %}

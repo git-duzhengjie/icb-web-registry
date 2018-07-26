@@ -10,7 +10,7 @@ import json
 import os.path
 import subprocess
 import traceback
-from math import floor, ceil
+from math import ceil
 
 import requests
 import tornado.httpserver
@@ -25,6 +25,7 @@ from tornado.options import define, options
 define("port", default=8080, help="run on the given port", type=int)
 define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
 define("version_path", default="./version.json", help="version path", type=str)
+define("k8s_manager_address", default="http://192.168.0.230:8081", help="k8s manager address", type=str)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -85,26 +86,13 @@ class PublishHandler(BaseHandler):
             srv = args[1]
         else:
             srv = args[0]
-        current_version = get_current_version()
-        if tag != current_version.get(srv).get("tag"):
-            command = "kubectl set image deployment {0} {0}={1}/{2}:{3} -n icb " \
-                .format(srv, options.image_url.replace("https://", ""), arg, tag)
-            print(command)
-            return_code = subprocess.call(command, shell=True)
-            if return_code == 0:
-                current_version[srv]["tag"] = tag
-                current_version[srv]["update_time"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                save_current_version(current_version)
-            self.redirect("/tags/{0}".format(arg))
-        else:
-            command = "kubectl delete rs -l app={0} -n icb " \
-                .format(srv)
-            print(command)
-            return_code = subprocess.call(command, shell=True)
-            if return_code == 0:
-                current_version[srv]["update_time"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                save_current_version(current_version)
-            self.redirect("/tags/{0}".format(arg))
+        params = {}
+        params.setdefault("service_name", srv)
+        params.setdefault("version", tag)
+        params.setdefault("image_name", arg)
+        r = requests.get(options.k8s_manager_address + "/update", params=params)
+        print(r.json(), r.status_code)
+        self.redirect("/tags/{0}".format(arg))
 
 
 def check(username, password):
@@ -138,10 +126,12 @@ class TaskListPageHandler(BaseHandler):
 
     def post(self, *args, **kwargs):
         page = int(self.get_argument("page")) - 1
-        print(10*page)
-        tag_images, page_count = get_images(10*page, 10)
+        print(10 * page)
+        tag_images, page_count = get_images(10 * page, 10)
         page_content = self.get_page_content(tag_images)
-        self.write(json.dumps({"page_count": page_count, "page_content": str(page_content, encoding="utf-8").replace("\\n", "")}, ensure_ascii=False))
+        self.write(json.dumps(
+            {"page_count": page_count, "page_content": str(page_content, encoding="utf-8").replace("\\n", "")},
+            ensure_ascii=False))
 
     def get_page_content(self, tag_images):
         base = """{% for i in range(len(tag_images)) %}
@@ -190,7 +180,7 @@ def get_images(start, count):
         result = requests.get(url, verify=False).content.strip()
         docker_images = json.loads(result).get("repositories")
         images_tags = {}
-        for image in docker_images[start:start+count]:
+        for image in docker_images[start:start + count]:
             url = options.image_url + "/v2/" + image + "/tags/list"
             result = requests.get(url, verify=False).content.strip()
             tags = json.loads(result).get('tags', [])
@@ -199,7 +189,7 @@ def get_images(start, count):
                 tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
             tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
             images_tags.setdefault(image, tags_time)
-        return images_tags, ceil(len(docker_images)/10)
+        return images_tags, ceil(len(docker_images) / 10)
     except:
         traceback.print_exc()
         return None
@@ -233,7 +223,7 @@ def get_image_time(image, tags):
             result = requests.get(url, verify=False).content.strip()
             create_time.setdefault(tag, get_local_time(
                 json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
-                .get("created")))
+                    .get("created")))
         return create_time
     except:
         return None
@@ -250,7 +240,7 @@ def get_image_last_time(image_tags):
             result = requests.get(url, verify=False).content.strip()
             create_time.setdefault(image, get_local_time(
                 json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
-                .get("created")))
+                    .get("created")))
         return create_time
     except:
         return None
@@ -264,7 +254,7 @@ def image_tag_time(image, tag):
         url = url_base + tag
         result = requests.get(url, verify=False).content.strip()
         return get_local_time(
-                json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
+            json.loads(json.loads(result).get("history")[0].get("v1Compatibility"))
                 .get("created"))
     except:
         return None
