@@ -26,6 +26,7 @@ define("port", default=8080, help="run on the given port", type=int)
 define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
 define("version_path", default="./version.json", help="version path", type=str)
 define("k8s_manager_address", default="http://192.168.0.230:8081", help="k8s manager address", type=str)
+define("page_count", default=10, help="page count", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -38,7 +39,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class IndexHandler(BaseHandler):
     def get(self):
-        tag_images, page_count = get_images(0, 10)
+        tag_images, page_count = get_images(0, options.page_count)
         self.render('registry-web-base.html', tag_images=tag_images, user=self.current_user, online=get_online(),
                     page_count=page_count)
 
@@ -126,8 +127,7 @@ class TaskListPageHandler(BaseHandler):
 
     def post(self, *args, **kwargs):
         page = int(self.get_argument("page")) - 1
-        print(10 * page)
-        tag_images, page_count = get_images(10 * page, 10)
+        tag_images, page_count = get_images(options.page_count * page, options.page_count)
         page_content = self.get_page_content(tag_images)
         self.write(json.dumps(
             {"page_count": page_count, "page_content": str(page_content, encoding="utf-8").replace("\\n", "")},
@@ -163,6 +163,41 @@ class LogoutHandler(BaseHandler):
         self.redirect("/")
 
 
+class SearchHandler(BaseHandler):
+
+    def post(self, *args, **kwargs):
+        key = self.get_argument("key")
+        print(key)
+        tag_images = search_images(key)
+        page_content = self.get_page_content(tag_images)
+        self.write(json.dumps(
+            {"page_content": str(page_content, encoding="utf-8").replace("\\n", "")},
+            ensure_ascii=False))
+
+    def get_page_content(self, tag_images):
+        base = """{% for i in range(len(tag_images)) %}
+                    <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
+                        <td>{{i}}</td>
+                        <td>
+                            <a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}
+                                {% if (len(list(tag_images.keys())[i].split('/')) == 2 and
+                                list(tag_images.keys())[i].split('/')[1] in online) or  list(tag_images.keys())[i] in online %}
+                                <sup id="online"><font color="green">k8s</font></sup></a>
+                                {% end %}
+                            </td>
+                        <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
+                        <td>{{tag_images.get(list(tag_images.keys())[i])[0].get("tag")}}</td>
+                        <td class="col-6">{{tag_images.get(list(tag_images.keys())[i])[0].get("time")}}</td>
+                        {%if user is not None%}
+                        <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
+                        {% end %}
+                    </tr>
+                    </a>
+                  {% end %}"""
+        t = template.Template(base)
+        return t.generate(tag_images=tag_images, online=get_online(), user=self.current_user)
+
+
 def sort(tags):
     sort_tags = tags
     if 'latest' in tags:
@@ -189,7 +224,31 @@ def get_images(start, count):
                 tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
             tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
             images_tags.setdefault(image, tags_time)
-        return images_tags, ceil(len(docker_images) / 10)
+        return images_tags, ceil(len(docker_images) / options.page_count)
+    except:
+        traceback.print_exc()
+        return None
+
+
+def search_images(key):
+    try:
+        s = requests.session()
+        s.keep_alive = False
+        url = options.image_url + "/v2/_catalog"
+        result = requests.get(url, verify=False).content.strip()
+        docker_images = json.loads(result).get("repositories")
+        images_tags = {}
+        for image in docker_images:
+            if key in image:
+                url = options.image_url + "/v2/" + image + "/tags/list"
+                result = requests.get(url, verify=False).content.strip()
+                tags = json.loads(result).get('tags', [])
+                tags_time = []
+                for tag in tags:
+                    tags_time.append({"tag": tag, "time": image_tag_time(image, tag)})
+                tags_time = sorted(tags_time, key=lambda k: k["time"], reverse=True)
+                images_tags.setdefault(image, tags_time)
+        return images_tags
     except:
         traceback.print_exc()
         return None
@@ -285,7 +344,7 @@ if __name__ == '__main__':
     app = tornado.web.Application(
         handlers=[(r'/', IndexHandler), (r'/tags/(.*)', TagsPageHandler), (r'/delete/(.*)', DeleteHandler),
                   (r'/sign-in', SignInHandler), (r'/logout', LogoutHandler), (r'/publish/(.*)', PublishHandler),
-                  (r'/task_list_page', TaskListPageHandler)
+                  (r'/task_list_page', TaskListPageHandler), (r'/search', SearchHandler)
                   ],
         template_path=os.path.join(os.path.dirname(__file__), "html"),
         static_path=os.path.join(os.path.dirname(__file__), "static"),

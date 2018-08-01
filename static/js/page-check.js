@@ -10,23 +10,47 @@
                 window.location.href=href;
             }
           });
+          $("#search-text").bind("input propertychange change",function(event){
+             if($("#search-text").val().trim() != ""){
+                 $.ajax({
+                    url:'/search',
+                    type:'POST',
+                    data:{'key':$("#search-text").val()},
+                    dataType:'JSON',
+                    success:function (callback) {
+                            $('tbody').empty();
+                            var page_cont=callback.page_content;
+                            var page_count=callback.page_count;
+                            $('#last_page').text(page_count);
+                            $('tbody').append(page_cont);
+                            addDel();
+                            keywordHighlight("tbody", $("#search-text").val())
+                            $('#pageLimit').hide();
+                        }
+                })
+            }
+            else{
+                $('#pageLimit').show();
+                window.location.href = "/";
+            }
+         });
           addDel();
           $('#pageLimit').bootstrapPaginator({
-    currentPage: 1,
-    totalPages: $("#pageCount").text(),
-    size:"normal",
-    bootstrapMajorVersion: 3,
-    alignment:"right",
-    numberOfPages:$("#pageCount").text(),
-    itemTexts: function (type, page, current) {
-        switch (type) {
-        case "first": return "首页";
-        case "prev": return "上一页";
-        case "next": return "下一页";
-        case "last": return "末页";
-        case "page": return page;
-        }//默认显示的是第一页。
-    },
+            currentPage: 1,
+            totalPages: $("#pageCount").text(),
+            size:"normal",
+            bootstrapMajorVersion: 3,
+            alignment:"right",
+            numberOfPages:$("#pageCount").text(),
+            itemTexts: function (type, page, current) {
+                switch (type) {
+                case "first": return "首页";
+                case "prev": return "上一页";
+                case "next": return "下一页";
+                case "last": return "末页";
+                case "page": return page;
+                }//默认显示的是第一页。
+            },
         onPageClicked: function (event, originalEvent, type, page){//给每个页眉绑定一个事件，其实就是ajax请求，其中page变量为当前点击的页上的数字。
             $("tbody").mLoading({
                 text:"",//加载文字，默认值：加载中...
@@ -94,6 +118,52 @@
             return false;
     }
 
+    function keyLight(tag, key, bgColor){
+       var oDiv = $(tag),
+           sText = oDiv.html(),
+           bgColor = bgColor || "orange",
+           sKey = "<span style='background-color: "+bgColor+";'>"+key+"</span>",
+           num = -1,
+           rStr = new RegExp(key, "g"),
+           rHtml = new RegExp("\<.*?\>","ig"), //匹配html元素
+           aHtml = sText.match(rHtml); //存放html元素的数组
+           sText = sText.replace(rHtml, '{~}');  //替换html标签
+           sText = sText.replace(rStr,sKey); //替换key
+           sText = sText.replace(/{~}/g,function(){  //恢复html标签
+         num++;
+         return aHtml[num];
+       });
+       oDiv.innerHTML = sText;
+     }
+      function keywordHighlight(idHtmlContent,keyword) {
+	var content= $(idHtmlContent).html();//获取内容
+	if ($.trim(keyword)==""){
+		return;//关键字为空则返回
+	}
+	var htmlReg = new RegExp("\<.*?\>", "i");
+	var arrA = new Array();
+	//替换HTML标签
+	for (var i = 0; true; i++) {
+		var m = htmlReg.exec(content);
+		if (m) {
+			arrA[i] = m;
+		}else {
+			break;
+		}
+		content = content.replace(m, "{[(" + i + ")]}");
+	}
+	words = unescape(keyword.trim().replace(/\+/g, ' ')).split(/\s+/);
+	//替换关键字
+	for (w = 0; w < words.length; w++) {
+		var r = new RegExp("(" + words[w].replace(/[(){}.+*?^$|\\\[\]]/g, "\\$&") + ")", "ig");
+		content = content.replace(r, "<b><span style='color:orange;font-size:14px;'><u>"+words[w]+"</u></span></b>");//关键字样式
+	}
+	//恢复HTML标签
+	for (var i = 0; i < arrA.length; i++) {
+		content = content.replace("{[(" + i + ")]}", arrA[i]);
+	}
+	 $(idHtmlContent).html(content);
+}
     function addDel(){
         $(".del").click(function(){
             var href = $(this).children("a").attr("rel");
