@@ -82,13 +82,9 @@
         if($("#user").text().trim() != "None")
         {
             $("#btn-login").hide();
-            $(".del").show();
-            $(".online").show();
             $("#user-span").show();
         }else{
             $("#btn-login").show();
-            $(".del").hide();
-            $(".online").hide();
             $("#user-span").hide();
         }
 
