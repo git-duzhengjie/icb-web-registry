@@ -136,20 +136,22 @@ class TaskListPageHandler(BaseHandler):
 
     def get_page_content(self, tag_images):
         base = """{% for i in range(len(tag_images)) %}
-                    <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
+                    {% set image_all = list(tag_images.keys())[i] %}
+                    {% set image_all_arr = image_all.split('/') %}
+                    {% set image = image_all_arr[1] if len(image_all_arr) == 2 else image_all %}
+                    <tr>
                         <td>{{i}}</td>
                         <td>
-                            <a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}
-                                {% if (len(list(tag_images.keys())[i].split('/')) == 2 and
-                                list(tag_images.keys())[i].split('/')[1] in online) or  list(tag_images.keys())[i] in online %}
+                            <a href="/tags/{{image}}">{{image_all}}
+                                {% if image in online %}
                                 <sup id="online"><font color="green">k8s</font></sup></a>
                                 {% end %}
                             </td>
-                        <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
-                        <td>{{tag_images.get(list(tag_images.keys())[i])[0].get("tag")}}</td>
-                        <td class="col-6">{{tag_images.get(list(tag_images.keys())[i])[0].get("time")}}</td>
+                        <td>{{len(tag_images.get(image_all))}}</td>
+                        <td>{{tag_images.get(image_all)[0].get("tag")}}</td>
+                        <td class="col-6">{{tag_images.get(image_all)[0].get("time")}}</td>
                         {%if user is not None%}
-                        <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
+                            <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
                         {% end %}
                     </tr>
                     </a>
@@ -168,7 +170,6 @@ class SearchHandler(BaseHandler):
 
     def post(self, *args, **kwargs):
         key = self.get_argument("key")
-        print(key)
         tag_images = search_images(key)
         page_content = self.get_page_content(tag_images)
         self.write(json.dumps(
@@ -177,20 +178,22 @@ class SearchHandler(BaseHandler):
 
     def get_page_content(self, tag_images):
         base = """{% for i in range(len(tag_images)) %}
-                    <a href="tags/{{list(tag_images.keys())[i]}}"><tr>
+                    {% set image_all = list(tag_images.keys())[i] %}
+                    {% set image_all_arr = image_all.split('/') %}
+                    {% set image = image_all_arr[1] if len(image_all_arr) == 2 else image_all %}
+                    <tr>
                         <td>{{i}}</td>
                         <td>
-                            <a href="/tags/{{list(tag_images.keys())[i]}}">{{list(tag_images.keys())[i]}}
-                                {% if (len(list(tag_images.keys())[i].split('/')) == 2 and
-                                list(tag_images.keys())[i].split('/')[1] in online) or  list(tag_images.keys())[i] in online %}
+                            <a href="/tags/{{image}}">{{image_all}}
+                                {% if image in online %}
                                 <sup id="online"><font color="green">k8s</font></sup></a>
                                 {% end %}
                             </td>
-                        <td>{{len(tag_images.get(list(tag_images.keys())[i]))}}</td>
-                        <td>{{tag_images.get(list(tag_images.keys())[i])[0].get("tag")}}</td>
-                        <td class="col-6">{{tag_images.get(list(tag_images.keys())[i])[0].get("time")}}</td>
+                        <td>{{len(tag_images.get(image_all))}}</td>
+                        <td>{{tag_images.get(image_all)[0].get("tag")}}</td>
+                        <td class="col-6">{{tag_images.get(image_all)[0].get("time")}}</td>
                         {%if user is not None%}
-                        <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
+                            <td class="del"><a href="JavaScript:void(0)" rel="/delete/{{list(tag_images.keys())[i]}}">删除</a></td>
                         {% end %}
                     </tr>
                     </a>
