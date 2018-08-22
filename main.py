@@ -142,7 +142,7 @@ class TaskListPageHandler(BaseHandler):
                     <tr>
                         <td>{{i}}</td>
                         <td>
-                            <a href="/tags/{{image}}">{{image_all}}
+                            <a href="/tags/{{image_all}}">{{image_all}}
                                 {% if image in online %}
                                 <sup id="online"><font color="green">k8s</font></sup></a>
                                 {% end %}
@@ -184,7 +184,7 @@ class SearchHandler(BaseHandler):
                     <tr>
                         <td>{{i}}</td>
                         <td>
-                            <a href="/tags/{{image}}">{{image_all}}
+                            <a href="/tags/{{image_all}}">{{image_all}}
                                 {% if image in online %}
                                 <sup id="online"><font color="green">k8s</font></sup></a>
                                 {% end %}

@@ -10,7 +10,8 @@
                 window.location.href=href;
             }
           });
-          $("#search-text").bind("input propertychange change",function(event){
+
+          $("#search-text").bind("input propertychange change", function(event){
              if($("#search-text").val().trim() != ""){
                  $.ajax({
                     url:'/search',
@@ -23,15 +24,31 @@
                             var page_count=callback.page_count;
                             $('#last_page').text(page_count);
                             $('tbody').append(page_cont);
-                            addDel();
                             keywordHighlight("tbody", $("#search-text").val())
                             $('#pageLimit').hide();
+                            addDel();
                         }
                 })
             }
             else{
-                $('#pageLimit').show();
-                window.location.href = "/";
+
+                $.ajax({
+                url:'/task_list_page',
+                type:'POST',
+                data:{'page':1},
+                dataType:'JSON',
+                success:function (callback) {
+                        $('tbody').empty();
+                        var page_count=callback.page_count;
+                        var page_cont=callback.page_content;
+                        $('tbody').append(page_cont);
+                        $('#last_page').text(page_count);
+                        $("tbody").mLoading("hide");
+                        $('#pageLimit').show();
+                        addDel();
+                    }
+
+            })
             }
          });
           addDel();
