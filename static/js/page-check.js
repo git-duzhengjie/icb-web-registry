@@ -11,7 +11,9 @@
             }
           });
 
-          $("#search-text").bind("input propertychange change", function(event){
+          $("#search-text").keypress(function(event){
+             if(event.keyCode != 13)
+                return;
              if($("#search-text").val().trim() != ""){
                  $.ajax({
                     url:'/search',
@@ -43,7 +45,6 @@
                         var page_cont=callback.page_content;
                         $('tbody').append(page_cont);
                         $('#last_page').text(page_count);
-                        $("tbody").mLoading("hide");
                         $('#pageLimit').show();
                         addDel();
                     }

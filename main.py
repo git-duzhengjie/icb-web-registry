@@ -26,7 +26,7 @@ define("port", default=8080, help="run on the given port", type=int)
 define("image_url", default="https://192.168.0.230:5000", help="image registry address", type=str)
 define("version_path", default="./version.json", help="version path", type=str)
 define("k8s_manager_address", default="http://192.168.0.230:8081", help="k8s manager address", type=str)
-define("page_count", default=10, help="page count", type=int)
+define("page_count", default=15, help="page count", type=int)
 requests.packages.urllib3.disable_warnings()
 
 
