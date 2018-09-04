@@ -1,5 +1,5 @@
 # coding:utf-8
-# python version:
+# python version: 3.6
 # author: duzhengjie
 # date: 2018/05/02
 # description:镜像仓库ui
